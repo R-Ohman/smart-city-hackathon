@@ -5,15 +5,18 @@ import { AirStore } from '../store/air/air.store';
 import { AirStation } from '../models/air.model';
 import { HeaderService } from '../../core/service/header/header.service';
 import { AirService } from '../service/air/air.service';
+import { AreaDetailsComponent } from '@features/area-details/area-details.component';
 
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [LeafletModule],
+  imports: [LeafletModule, AreaDetailsComponent],
   templateUrl: './map.component.html',
   styleUrl: './map.component.scss'
 })
 export class MapComponent implements OnInit{
+  chosenStationId = signal(null as number|null);
+
   private readonly airStore = inject(AirStore);
 
   private airStations = this.airStore.airStationsEntities;
@@ -31,7 +34,7 @@ export class MapComponent implements OnInit{
       })
     ],
     zoom: 12,
-    center: { lat: 28.626137, lng: 79.821603 }
+    center: { lat: 54.35, lng: 18.65 }
   }
 
   constructor(private headerService: HeaderService) {
@@ -47,17 +50,6 @@ export class MapComponent implements OnInit{
       .then(() => this.initMarkers());
   }
 
-  // private marker = Leaflet.icon({
-  //   iconUrl: 'assets/map-marker.svg',
-  //   shadowUrl: 'assets/map-marker.svg',
-
-  //   iconSize:     [38, 95], // size of the icon
-  //   shadowSize:   [50, 64], // size of the shadow
-  //   iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
-  //   shadowAnchor: [4, 62],  // the same for the shadow
-  //   popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
-  // });
-
   initMarkers() {
     const airStations = this.airStations();
     for (let index = 0; index < airStations.length; index++) {
@@ -70,12 +62,7 @@ export class MapComponent implements OnInit{
   }
 
   generateMarker(data: AirStation, index: number) {
-    return Leaflet.marker({lat: +data.gegrLat, lng: +data.gegrLon}, {
-      icon: Leaflet.icon({
-        iconUrl: 'wind_station.png',
-        iconSize:     [38, 95],
-        })
-      })
+    return Leaflet.marker({lat: +data.gegrLat, lng: +data.gegrLon})
       .on('click', (event) => this.markerClicked(event, index))
       .on('dragend', (event) => this.markerDragEnd(event, index));
   }
@@ -88,11 +75,17 @@ export class MapComponent implements OnInit{
   mapClicked($event: any) {
     console.log($event.latlng.lat, $event.latlng.lng);
     const nearest_station = this.getNearestStation($event.latlng.lat, $event.latlng.lng);
-    this.map.flyTo({lat: +nearest_station.gegrLat, lng: +nearest_station.gegrLon}, 15);
+    this.chosenStationId.set(nearest_station.id);
+    this.map.flyTo({lat: +nearest_station.gegrLat, lng: +nearest_station.gegrLon}, 15, { duration: 1.5 });
 
     const stationDetails = this.airService.getStationDetails(nearest_station.id).then((stationDetails) => {
-      this.markers.filter((marker) => marker.getLatLng().lat == +nearest_station.gegrLat 
-      && marker.getLatLng().lng == +nearest_station.gegrLon)[0].bindPopup(nearest_station.stationName).openPopup()
+      let marker = this.markers.filter(
+        (marker) => marker.getLatLng().lat == +nearest_station.gegrLat 
+        && marker.getLatLng().lng == +nearest_station.gegrLon)[0];
+      marker.bindPopup(nearest_station.stationName).openPopup();
+      marker.getPopup()!.on('remove', () => {
+        this.chosenStationId.set(null);
+      });
     }
     );
   }

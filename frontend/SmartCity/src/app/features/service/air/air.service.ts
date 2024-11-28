@@ -22,11 +22,11 @@ export class AirService {
       );
   }
 
-  getStationDetails(stationId: number): Promise<AirStationDetailsDto> {
+  getStationDetails(stationId: number): Promise<AirStationDetails[]> {
     return firstValueFrom(
       this.http.get<AirStationDetailsDto>(ApiPath.AirStationDetails + stationId)
       .pipe(
-        map((response) => response)
+        map((response) => response.parameters)
       )
     );
   }
