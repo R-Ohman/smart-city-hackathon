@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from air.router import router as air_router
+from app.air.router import router as air_router
 
 app = FastAPI()
 
@@ -21,4 +21,4 @@ app.include_router(air_router, prefix="/api/air", tags=["Air API"])
 
 @app.get("/health-check")
 def health_check():
-    return {"status": "ok"}
+    return {"status": "ok hi"}
