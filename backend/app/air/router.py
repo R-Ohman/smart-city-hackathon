@@ -1,8 +1,10 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
+from redis.asyncio import Redis
 
 from app.air.air_service import AirService
 from app.air.deps import get_air_service
+from app.redis.redis_config import get_redis_client
 
 from .schemas import (
     AirParameters,
@@ -40,8 +42,9 @@ async def get_air_quality(
 
 @router.get("/parameters/{station_id}")
 async def get_air_parameters_for_station(
-    station_id: int, air_service: Annotated[AirService, Depends(get_air_service)]
+    station_id: int, air_service: Annotated[AirService, Depends(get_air_service)],
+    redis: Annotated[Redis, Depends(get_redis_client)]
 ) -> AirParameters:
     return AirParameters(
-        parameters=await air_service.get_air_parameters_for_station(station_id)
+        parameters=await air_service.get_air_parameters_for_station(station_id, redis)
     )

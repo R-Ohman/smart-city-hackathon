@@ -1,5 +1,8 @@
+import json
 from datetime import datetime
 from typing import List
+
+from redis.asyncio import Redis
 from app.air.external_air_api import (
     get_air_quality_info,
     get_sensor_parameters,
@@ -39,10 +42,17 @@ class AirService:
         return measurements
 
     async def get_air_parameters_for_station(
-        self, station_id: int
+            self, station_id: int, redis: Redis
     ) -> List[AirParameter]:
-        sensors = await get_station_sensors(station_id)
 
+        cached = await redis.get(f"station:{station_id}:param")
+
+        if cached is not None:
+            print(cached)
+            return [AirParameter.model_validate_json(param) for param in json.loads(cached)]
+
+        sensors = await get_station_sensors(station_id)
+        
         all_parameters = []
 
         for sensor in sensors:
@@ -58,4 +68,9 @@ class AirService:
                     measurementDate=parameters["values"][i]["date"],
                 )
             )
+        
+        now = datetime.now()
+        ex = (60 - now.minute) * 60  # expire after ex seconds
+        await redis.set(f"station:{station_id}:param", json.dumps([param.model_dump_json() for param in all_parameters]), ex=ex)
+
         return all_parameters
