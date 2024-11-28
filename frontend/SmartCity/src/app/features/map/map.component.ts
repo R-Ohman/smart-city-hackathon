@@ -3,6 +3,7 @@ import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import * as Leaflet from 'leaflet';
 import { AirStore } from '../store/air/air.store';
 import { AirStation } from '../models/air.model';
+import { AirService } from '../service/air/air.service';
 
 @Component({
   selector: 'app-map',
@@ -15,6 +16,8 @@ export class MapComponent implements OnInit{
   private readonly airStore = inject(AirStore);
 
   private airStations = this.airStore.airStationsEntities;
+
+  private readonly airService = inject(AirService);
 
   protected isAirLoading = signal(true);
 
@@ -72,8 +75,12 @@ export class MapComponent implements OnInit{
     console.log($event.latlng.lat, $event.latlng.lng);
     const nearest_station = this.getNearestStation($event.latlng.lat, $event.latlng.lng);
     this.map.flyTo({lat: +nearest_station.gegrLat, lng: +nearest_station.gegrLon}, 15);
-    this.markers.filter((marker) => marker.getLatLng().lat == +nearest_station.gegrLat 
-    && marker.getLatLng().lng == +nearest_station.gegrLon)[0].bindPopup("vitalii").openPopup();
+
+    const stationDetails = this.airService.getStationDetails(nearest_station.id).then((stationDetails) => {
+      this.markers.filter((marker) => marker.getLatLng().lat == +nearest_station.gegrLat 
+      && marker.getLatLng().lng == +nearest_station.gegrLon)[0].bindPopup(nearest_station.stationName).openPopup()
+    }
+    );
   }
 
   getNearestStation(latitude: number, longtitude: number): AirStation {
