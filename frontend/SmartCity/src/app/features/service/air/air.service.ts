@@ -24,6 +24,6 @@ export class AirService {
 
 
   private responseToAirStations(response: AirStationsDto): AirStation[] { 
-      return response.stations;
+      return response.airStations;
   }
 }
