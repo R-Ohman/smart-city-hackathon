@@ -1,0 +1,9 @@
+services:
+  api:
+    build: backend
+    ports:
+      - 5051:80
+    environment:
+      DEV: 1
+    volumes:
+      - ./backend/app:/code/app
