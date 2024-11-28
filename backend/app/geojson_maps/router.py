@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import aiofiles
 from fastapi import APIRouter, HTTPException, UploadFile, status
@@ -23,3 +24,7 @@ async def upload_geojson_map(
     async with aiofiles.open(Path(settings.UPLOADED_MAPS_LOCATION) / (map_name + ".geojson"), 'wb') as dst_file:
         await dst_file.write(await map_file.read())
 
+
+@router.get('')
+async def get_all_uploaded_geojson_maps():
+    return [filename.split('.')[0] for filename in os.listdir(settings.UPLOADED_MAPS_LOCATION) if filename.endswith('.geojson')]
