@@ -1,7 +1,14 @@
 from datetime import datetime
+from typing import List
 
 from pydantic import BaseModel
-from typing import List
+
+
+class CustomBaseModel(BaseModel):
+
+    class Config:
+        json_encoders = {datetime: lambda dt: dt.strftime("%Y-%m-%d %H:%M:%S")}
+
 
 
 class Commune(BaseModel):
@@ -48,18 +55,22 @@ class AirStationSensorList(BaseModel):
     count: int
 
 
-class AirQualityItem(BaseModel):
+class AirQualityItem(CustomBaseModel):
     levelName: str
     measurementDate: datetime
     calculationDate: datetime
     indexLevelName: str
 
-
-    class Config:
-        json_encoders = {
-            datetime: lambda dt: dt.strftime('%Y-%m-%d %H:%M:%S')
-        }
-
-
 class AirQualityMeasurements(BaseModel):
     measurements: List[AirQualityItem]
+
+
+class AirParameter(CustomBaseModel):
+    name: str
+    formula: str
+    value: float
+    measurementDate: datetime
+
+
+class AirParameters(BaseModel):
+    parameters: List[AirParameter]
