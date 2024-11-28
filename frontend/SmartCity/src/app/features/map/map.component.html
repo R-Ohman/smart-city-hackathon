@@ -4,6 +4,9 @@
   (leafletMapReady)="onMapReady($event)"
   (leafletClick)="mapClicked($event)">
 </div>
+@if (!!chosenStationId()) {
+  <app-area-details [stationId]="chosenStationId()!"></app-area-details>
+}
 
 <div class="scale">
     <app-scale></app-scale>

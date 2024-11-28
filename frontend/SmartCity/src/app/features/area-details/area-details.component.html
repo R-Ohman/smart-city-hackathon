@@ -1,1 +1,26 @@
-<p>area-details works!</p>
+@if(stationDetails().length) {
+<table mat-table [dataSource]="stationDetails()" class="mat-elevation-z8">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef> Title </th>
+      <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+    </ng-container>
+  
+    <ng-container matColumnDef="formula">
+      <th mat-header-cell *matHeaderCellDef> Formula </th>
+      <td mat-cell *matCellDef="let element"> {{element.formula}} </td>
+    </ng-container>
+  
+    <ng-container matColumnDef="value">
+      <th mat-header-cell *matHeaderCellDef> Value </th>
+      <td mat-cell *matCellDef="let element"> {{element.value}} </td>
+    </ng-container>
+  
+    <ng-container matColumnDef="measurementDate">
+      <th mat-header-cell *matHeaderCellDef> Measurement date </th>
+      <td mat-cell *matCellDef="let element"> {{element.measurementDate}} </td>
+    </ng-container>
+  
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+}
