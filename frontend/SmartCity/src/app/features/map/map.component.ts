@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import * as Leaflet from 'leaflet';
+import { AirService } from '../service/air/air.service';
+import { AirStore } from '../store/air/air.store';
 
 @Component({
   selector: 'app-map',
@@ -9,7 +11,13 @@ import * as Leaflet from 'leaflet';
   templateUrl: './map.component.html',
   styleUrl: './map.component.scss'
 })
-export class MapComponent {
+export class MapComponent implements OnInit{
+  private readonly airStore = inject(AirStore);
+
+  private airStations = this.airStore.airStationsEntities;
+
+  protected isAirLoading = signal(true);
+
   map!: Leaflet.Map;
   markers: Leaflet.Marker[] = [];
   options = {
@@ -22,43 +30,35 @@ export class MapComponent {
     center: { lat: 28.626137, lng: 79.821603 }
   }
 
-  private marker = Leaflet.icon({
-    iconUrl: '../../../public/assets/map-marker.svg',
-    shadowUrl: '../../../../public/assets/map-marker.svg',
+  public ngOnInit(): void {
+    this.airStore.getAirStations()
+    .then(this.initMarkers);
+  }
 
-    iconSize:     [38, 95], // size of the icon
-    shadowSize:   [50, 64], // size of the shadow
-    iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
-    shadowAnchor: [4, 62],  // the same for the shadow
-    popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
-  });
+  // private marker = Leaflet.icon({
+  //   iconUrl: '../../../public/assets/map-marker.svg',
+  //   shadowUrl: '../../../../public/assets/map-marker.svg',
+
+  //   iconSize:     [38, 95], // size of the icon
+  //   shadowSize:   [50, 64], // size of the shadow
+  //   iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+  //   shadowAnchor: [4, 62],  // the same for the shadow
+  //   popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+  // });
 
   initMarkers() {
-    const initialMarkers = [
-      {
-        position: { lat: 28.625485, lng: 79.821091 },
-        draggable: true
-      },
-      {
-        position: { lat: 28.625293, lng: 79.817926 },
-        draggable: false
-      },
-      {
-        position: { lat: 28.625182, lng: 79.81464 },
-        draggable: true
-      }
-    ];
-    for (let index = 0; index < initialMarkers.length; index++) {
-      const data = initialMarkers[index];
+    const airStations = this.airStations();
+    for (let index = 0; index < airStations.length; index++) {
+      const data = airStations[index];
       const marker = this.generateMarker(data, index);
-      marker.addTo(this.map).bindPopup(`<b>${data.position.lat},  ${data.position.lng}</b>`);
-      this.map.panTo(data.position);
+      marker.addTo(this.map).bindPopup(`<b>vitalii</b>`);
+      this.map.panTo({lat: data.latitude, lng: data.longitude});
       this.markers.push(marker)
     }
   }
 
   generateMarker(data: any, index: number) {
-    return Leaflet.marker(data.position, { draggable: data.draggable, icon: this.marker })
+    return Leaflet.marker(data.position, { draggable: data.draggable/*, icon: this.marker*/ })
       .on('click', (event) => this.markerClicked(event, index))
       .on('dragend', (event) => this.markerDragEnd(event, index));
   }
