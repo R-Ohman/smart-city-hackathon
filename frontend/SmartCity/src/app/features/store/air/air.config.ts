@@ -5,5 +5,5 @@ import { type } from '@ngrx/signals';
 export const airConfig = entityConfig({
     entity: type<AirStation>(),
     collection: 'airStations',
-    selectId: (airStation) => airStation.stationName,
+    selectId: (airStation) => airStation.id,
 })
