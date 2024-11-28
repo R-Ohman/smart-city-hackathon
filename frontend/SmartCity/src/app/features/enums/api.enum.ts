@@ -1,4 +1,5 @@
 export enum ApiPath {
-    AirStations = 'http://localhost:5051/api/air/stations', // TODO: adjust to out API
+    AirStations = 'http://localhost:5051/api/air/stations',
+    GeoByText = 'http://localhost:5051/api/geo/coordinates',
     AirStationDetails = 'http://localhost:5051/api/air/parameters/'
 }

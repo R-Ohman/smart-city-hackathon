@@ -1,8 +1,9 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import * as Leaflet from 'leaflet';
 import { AirStore } from '../store/air/air.store';
 import { AirStation } from '../models/air.model';
+import { HeaderService } from '../../core/service/header/header.service';
 import { AirService } from '../service/air/air.service';
 
 @Component({
@@ -33,9 +34,17 @@ export class MapComponent implements OnInit{
     center: { lat: 28.626137, lng: 79.821603 }
   }
 
+  constructor(private headerService: HeaderService) {
+    effect(() => {
+      let [lat, lng] = headerService.geoLocationBySearch();
+      if (lat && lng)
+        this.map.flyTo({lat, lng}, 15);
+    })
+  }
+
   public ngOnInit(): void {
     this.airStore.getAirStations()
-    .then(() => this.initMarkers());
+      .then(() => this.initMarkers());
   }
 
   // private marker = Leaflet.icon({
@@ -61,7 +70,12 @@ export class MapComponent implements OnInit{
   }
 
   generateMarker(data: AirStation, index: number) {
-    return Leaflet.marker({lat: +data.gegrLat, lng: +data.gegrLon}, { draggable: false/*, icon: this.marker*/ })
+    return Leaflet.marker({lat: +data.gegrLat, lng: +data.gegrLon}, {
+      icon: Leaflet.icon({
+        iconUrl: 'wind_station.png',
+        iconSize:     [38, 95],
+        })
+      })
       .on('click', (event) => this.markerClicked(event, index))
       .on('dragend', (event) => this.markerDragEnd(event, index));
   }
