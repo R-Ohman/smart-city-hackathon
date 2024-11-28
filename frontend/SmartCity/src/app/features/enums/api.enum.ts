@@ -1,3 +1,3 @@
 export enum ApiPath {
-    AirStations = '/api/air/stations', // TODO: adjust to out API
+    AirStations = 'http://localhost:5051/api/air/stations', // TODO: adjust to out API
 }

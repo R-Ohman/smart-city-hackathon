@@ -12,6 +12,7 @@ export const AirStore = signalStore(
         async getAirStations() {
             if (!store.airStationsIds().length) {
                 const airStations = await airService.loadAirStations();
+                console.log(airStations);
                 patchState(store, setAllEntities(airStations, airConfig))
             }
         }

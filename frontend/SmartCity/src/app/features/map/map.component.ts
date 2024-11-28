@@ -32,7 +32,7 @@ export class MapComponent implements OnInit{
 
   public ngOnInit(): void {
     this.airStore.getAirStations()
-    .then(this.initMarkers);
+    .then(() => this.initMarkers());
   }
 
   // private marker = Leaflet.icon({
@@ -52,7 +52,7 @@ export class MapComponent implements OnInit{
       const data = airStations[index];
       const marker = this.generateMarker(data, index);
       marker.addTo(this.map).bindPopup(`<b>vitalii</b>`);
-      this.map.panTo({lat: data.latitude, lng: data.longitude});
+      this.map.panTo({lat: +data.gegrLat, lng: +data.gegrLon});
       this.markers.push(marker)
     }
   }
