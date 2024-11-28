@@ -5,7 +5,7 @@ from typing import List
 
 
 class Commune(BaseModel):
-    communeName: str 
+    communeName: str
     districtName: str
     provinceName: str
 
@@ -17,7 +17,6 @@ class City(BaseModel):
 
 
 class AirStation(BaseModel):
-    
     id: int
     stationName: str
     gegrLat: str
@@ -27,7 +26,6 @@ class AirStation(BaseModel):
 
 
 class AirStationList(BaseModel):
-
     airStations: List[AirStation]
     count: int
 
@@ -57,9 +55,11 @@ class AirQualityItem(BaseModel):
     indexLevelName: str
 
 
+    class Config:
+        json_encoders = {
+            datetime: lambda dt: dt.strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+
 class AirQualityMeasurements(BaseModel):
     measurements: List[AirQualityItem]
-
-
-
-

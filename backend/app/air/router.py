@@ -1,7 +1,8 @@
+from datetime import datetime
 from fastapi import APIRouter
 
-from .schemas import AirStationList, AirStation, AirStationSensorList, AirStationSensor, AirQualityMeasurements
-from .external_air_api import get_all_air_stations, get_all_sensors_info, get_air_quality_info
+from .schemas import AirQualityItem, AirQualityMeasurements, AirStationList, AirStation, AirStationSensorList, AirStationSensor
+from .external_air_api import get_air_quality_info, get_all_air_stations, get_all_sensors_info
 
 router = APIRouter()
 
@@ -17,13 +18,22 @@ async def get_all_air_measurement_stations() -> AirStationList:
 
     return response_obj
 
-@router.get("/sensors")
-async def get_all_stations_sensors_info() -> AirStationSensorList:
-    sensors = await get_all_sensors_info()
 
-    response_obj = AirStationSensorList(
-        airStationsSensors = [AirStationSensor.model_validate(sensor) for sensor in sensors],
-        count = len(sensors)
-    )
+@router.get("/quality/{station_id}")
+async def get_air_quality(station_id: int) -> AirQualityMeasurements:
+    
+    air_quality = await get_air_quality_info(station_id)
 
-    return response_obj
+    measurements = []
+    params = ['st', 'so2', 'no2', 'pm10', 'pm25', 'o3']
+    date_format = '%Y-%m-%d %H:%M:%S'
+    for param in params:
+        if air_quality[param + 'IndexLevel'] is not None:
+            
+            measurements.append(AirQualityItem(
+                levelName=param,
+                measurementDate=datetime.strptime(air_quality[param + 'SourceDataDate'], date_format),
+                calculationDate=datetime.strptime(air_quality[param + 'CalcDate'], date_format),
+                indexLevelName=air_quality[param + 'IndexLevel']['indexLevelName']
+            ))
+    return AirQualityMeasurements(measurements=measurements) 
