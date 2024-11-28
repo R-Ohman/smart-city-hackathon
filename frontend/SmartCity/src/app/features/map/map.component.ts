@@ -5,12 +5,13 @@ import { AirStore } from '../store/air/air.store';
 import { AirStation } from '../models/air.model';
 import { HeaderService } from '../../core/service/header/header.service';
 import { AirService } from '../service/air/air.service';
+import { ScaleComponent } from '../../core/scale/scale.component';
 import { AreaDetailsComponent } from '@features/area-details/area-details.component';
 
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [LeafletModule, AreaDetailsComponent],
+  imports: [LeafletModule, ScaleComponent, AreaDetailsComponent],
   templateUrl: './map.component.html',
   styleUrl: './map.component.scss'
 })
@@ -34,7 +35,7 @@ export class MapComponent implements OnInit{
       })
     ],
     zoom: 12,
-    center: { lat: 54.35, lng: 18.65 }
+    center: { lat: 54.377492, lng: 16.310728 }
   }
 
   constructor(private headerService: HeaderService) {
@@ -43,14 +44,7 @@ export class MapComponent implements OnInit{
       if (lat && lng)
         this.map.flyTo({lat, lng}, 15);
     })
-  }
-
-  constructor(private headerService: HeaderService) {
-    effect(() => {
-      let [lat, lng] = headerService.geoLocationBySearch();
-      if (lat && lng)
-        this.map.flyTo({lat, lng}, 15);
-    })
+    
   }
 
   public ngOnInit(): void {
@@ -67,11 +61,61 @@ export class MapComponent implements OnInit{
       this.map.panTo({lat: +data.gegrLat, lng: +data.gegrLon});
       this.markers.push(marker)
     }
+
+    setInterval(() =>
+      // this.map.on('moveend',(e) => 
+      {
+        const current_markers =  this.getFeaturesInView();
+        let undefinedQualities = 0;
+        // for (let marker of current_markers){
+        //   const id = marker.getData()?.id;
+        //   if (id && !this.airStore.airStationsEntityMap()[id].quality) {
+        //     undefinedQualities += 1;
+        //   }
+        // }
+        // if (undefinedQualities <= 5){
+          for (let marker of current_markers){
+            
+            const id = marker.getData()?.id;
+            if (id && !this.airStore.airStationsEntityMap()[id].quality && undefinedQualities <= 10){
+              undefinedQualities += 1;
+              this.airService.getStationQualities(id)
+                .then((stationQualities) => {
+                  const quality = stationQualities.measurements[0].indexLevelName;
+                  this.airStore.patchAirStation(id, {
+                    quality: quality
+                  }) 
+                  if (quality == "Bardzo dobry"){
+                    marker.circle?.setStyle({ color: "#33cc33"})
+                  }else if (quality == "Dobry"){
+                    marker.circle?.setStyle({ color: "#99ff33"})
+                  }else if (quality == "Umiarkowany"){
+                    marker.circle?.setStyle({ color: "#ffff99"})
+                  }else if (quality == "Dostateczny"){
+                    marker.circle?.setStyle({ color: "#ffffcc"})
+                  }else if (quality == "Zły"){
+                    marker.circle?.setStyle({ color: "#ff9999"})
+                  }else if (quality == "Bardzo zły"){
+                    marker.circle?.setStyle({ color: "#ff0000"})
+                  }
+                  marker.circle?.addTo(this.map);
+                } 
+              );
+            }
+          }
+        // }
+    // 
+    }
+    , 3000);
   }
 
   generateMarker(data: AirStation, index: number) {
-    return Leaflet.marker({lat: +data.gegrLat, lng: +data.gegrLon})
-      .on('click', (event) => this.markerClicked(event, index))
+    const marker = new DataMarker({lat: +data.gegrLat, lng: +data.gegrLon}, data);
+    marker.circle = Leaflet.circle([+data.gegrLat, +data.gegrLon], 5000);
+    marker.circle.setStyle({ color: 'green'});
+
+
+    return marker.on('click', (event) => this.markerClicked(event, index))
       .on('dragend', (event) => this.markerDragEnd(event, index));
   }
 
@@ -125,5 +169,34 @@ export class MapComponent implements OnInit{
 
   markerDragEnd($event: any, index: number) {
     console.log($event.target.getLatLng());
-  } 
+  }
+
+  getFeaturesInView() {
+    let clusters: DataMarker[] = []
+     this.map.eachLayer((l) => {
+          if( l instanceof DataMarker && this.map.getBounds().contains(l.getLatLng()) )
+               clusters.push(l)
+     })
+     return clusters;
+  }
+}
+
+
+export class DataMarker extends Leaflet.Marker {
+  data: AirStation | undefined;
+
+  circle: Leaflet.Circle | undefined;
+
+  constructor(latLng: L.LatLngExpression, data: AirStation, options?: L.MarkerOptions) {
+    super(latLng, options);
+    this.setData(data);
+  }
+
+  getData() {
+    return this.data;
+  }
+
+  setData(data: AirStation) {
+    this.data = data;
+  }
 }
