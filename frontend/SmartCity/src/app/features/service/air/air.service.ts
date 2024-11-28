@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AirStation, AirStationDetails, AirStationDetailsDto, AirStationsDto } from '../../models/air.model';
+import { AirStation, AirStationDetails, AirStationDetailsDto, AirStationQualities, AirStationsDto } from '../../models/air.model';
 import { firstValueFrom, switchMap, map } from 'rxjs';
 import { ApiPath } from '../../enums/api.enum';
 import { HttpClient } from '@angular/common/http';
@@ -28,6 +28,12 @@ export class AirService {
       .pipe(
         map((response) => response)
       )
+    );
+  }
+
+  getStationQualities(stationId: number): Promise<AirStationQualities> {
+    return firstValueFrom(
+      this.http.get<AirStationQualities>(ApiPath.AirStationQuality + stationId)
     );
   }
 

@@ -12,7 +12,8 @@ export interface AirStation {
         provinceName: string
     }
     },
-    addressStreet: string
+    addressStreet: string,
+    quality: string
 }
 
 export interface AirStationsDto {
@@ -28,4 +29,15 @@ export interface AirStationDetails {
 
 export interface AirStationDetailsDto {
     parameters: AirStationDetails[];
+}
+
+export interface AirStationQuality {
+    levelName: string,
+    measurementDate: string,
+    calculationDate: string,
+    indexLevelName: string
+}
+
+export interface AirStationQualities {
+    measurements: AirStationQuality[];
 }
