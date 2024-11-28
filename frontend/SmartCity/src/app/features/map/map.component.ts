@@ -1,8 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import * as Leaflet from 'leaflet';
-import { AirService } from '../service/air/air.service';
 import { AirStore } from '../store/air/air.store';
+import { AirStation } from '../models/air.model';
 
 @Component({
   selector: 'app-map',
@@ -36,8 +36,8 @@ export class MapComponent implements OnInit{
   }
 
   // private marker = Leaflet.icon({
-  //   iconUrl: '../../../public/assets/map-marker.svg',
-  //   shadowUrl: '../../../../public/assets/map-marker.svg',
+  //   iconUrl: 'assets/map-marker.svg',
+  //   shadowUrl: 'assets/map-marker.svg',
 
   //   iconSize:     [38, 95], // size of the icon
   //   shadowSize:   [50, 64], // size of the shadow
@@ -57,8 +57,8 @@ export class MapComponent implements OnInit{
     }
   }
 
-  generateMarker(data: any, index: number) {
-    return Leaflet.marker(data.position, { draggable: data.draggable/*, icon: this.marker*/ })
+  generateMarker(data: AirStation, index: number) {
+    return Leaflet.marker({lat: +data.gegrLat, lng: +data.gegrLon}, { draggable: false/*, icon: this.marker*/ })
       .on('click', (event) => this.markerClicked(event, index))
       .on('dragend', (event) => this.markerDragEnd(event, index));
   }
