@@ -34,7 +34,8 @@ export class MapComponent implements OnInit{
   constructor(private headerService: HeaderService) {
     effect(() => {
       let [lat, lng] = headerService.geoLocationBySearch();
-      this.map.flyTo({lat, lng}, 15);
+      if (lat && lng)
+        this.map.flyTo({lat, lng}, 15);
     })
   }
 
@@ -66,7 +67,12 @@ export class MapComponent implements OnInit{
   }
 
   generateMarker(data: AirStation, index: number) {
-    return Leaflet.marker({lat: +data.gegrLat, lng: +data.gegrLon}, { draggable: false/*, icon: this.marker*/ })
+    return Leaflet.marker({lat: +data.gegrLat, lng: +data.gegrLon}, {
+      icon: Leaflet.icon({
+        iconUrl: 'wind_station.png',
+        iconSize:     [38, 95],
+        })
+      })
       .on('click', (event) => this.markerClicked(event, index))
       .on('dragend', (event) => this.markerDragEnd(event, index));
   }
