@@ -8,6 +8,10 @@ import { AirService } from '../service/air/air.service';
 import { ScaleComponent } from '../../core/scale/scale.component';
 import { AreaDetailsComponent } from '@features/area-details/area-details.component';
 import { MapService } from '@features/service/map/map.service';
+import { HttpClient } from '@angular/common/http';
+import 'leaflet.heat/dist/leaflet-heat.js'
+
+declare const HeatmapOverlay: any;
 
 @Component({
   selector: 'app-map',
@@ -27,10 +31,41 @@ export class MapComponent implements OnInit{
   private readonly airService = inject(AirService);
   
   protected isAirLoading = signal(true);
+
+  private readonly httpClient = inject(HttpClient);
+
+  private mapService = inject(MapService);
+
+  private heatData: any = {
+    data: [
+      {lat: 48.37, lng: 31.16, count: 143},
+      {lat: 49.37, lng: 36.16, count: 133},
+      {lat: 43.32, lng: 37.13, count: 163},
+      {lat: 39.33, lng: 38.42, count: 143},
+      {lat: 42.31, lng: 34.65, count: 133},
+      {lat: 43.39, lng: 32.10, count: 163},
+    ]
+  }
+
+  private heatLayerConfig = {
+    "radius": 5,
+    "maxOpacity": .8,
+    "scaleRadius": true,
+    // property below is responsible for colorization of heat layer
+    "useLocalExtrema": true,
+    // here we need to assign property value which represent lat in our data
+    latField: 'lat',
+    // here we need to assign property value which represent lng in our data
+    lngField: 'lng',
+    // here we need to assign property value which represent valueField in our data
+    valueField: 'count'
+  };
+
   
   private mapService = inject(MapService);
 
   protected readonly qualityLabelFilter = this.mapService.airFilterOption;
+
 
   map: Leaflet.Map = this.mapService.map;
 
@@ -80,6 +115,8 @@ export class MapComponent implements OnInit{
   public ngOnInit(): void {
     this.airStore.getAirStations()
       .then(() => this.initMarkers());
+    this.loadGeojson();
+
   }
 
   initMarkers() {
@@ -135,10 +172,35 @@ export class MapComponent implements OnInit{
     , 3000);
   }
 
+
+  private loadGeojson(){
+
+    let geojson: any = null;
+    this.httpClient.get("/assets/greean_areas_with_coords.geojson").subscribe((data) => {
+      geojson = data;
+
+      // const stateLayer = Leaflet.geoJSON(geojson, {
+      //   style: (feature) => ({
+      //     weight: 3,
+      //     opacity: 0.5,
+      //     color: '#008f68',
+      //     fillOpacity: 0.8,
+      //     fillColor: '#6DB65B'
+      //   })
+      // });
+  
+      // this.map.addLayer(stateLayer);
+
+      
+  })
+}
+
+
   generateMarker(data: AirStation, index: number): DataMarker {
     const marker = new DataMarker({lat: +data.gegrLat, lng: +data.gegrLon}, data, { radius: 20 });
     marker.setStyle({ color: "#8c98ab"}) // light grey
  
+
     return marker.on('click', (event) => this.markerClicked(event, index))
       .on('dragend', (event) => this.markerDragEnd(event, index));
   }
@@ -146,6 +208,10 @@ export class MapComponent implements OnInit{
   onMapReady($event: Leaflet.Map) {
     this.map = $event;
     this.initMarkers();
+    const heatmapLayer = new HeatmapOverlay(this.heatLayerConfig);
+    
+    heatmapLayer.setData(this.heatData);
+    heatmapLayer.addTo(this.map);
   }
 
   mapClicked($event: any) {
@@ -200,6 +266,8 @@ export class MapComponent implements OnInit{
      })
      return clusters;
   }
+
+  
 }
 
 
