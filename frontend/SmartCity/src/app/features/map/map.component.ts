@@ -61,8 +61,9 @@ export class MapComponent implements OnInit{
             if (!marker.measurementLabel) continue;
             console.log(marker.measurementLabel);
             if (marker.measurementLabel !== qualityFilter) {
-              console.log('removing marker', marker);
               this.map.removeLayer(marker);
+            } else {
+              marker.addTo(this.map);
             }
         }
       } else {
