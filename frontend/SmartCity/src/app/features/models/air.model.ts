@@ -18,3 +18,14 @@ export interface AirStation {
 export interface AirStationsDto {
     airStations: AirStation[];
 }
+
+export interface AirStationDetails {
+    name: string,
+    formula: string,
+    value: number,
+    measurementDate: string
+}
+
+export interface AirStationDetailsDto {
+    parameters: AirStationDetails[];
+}
