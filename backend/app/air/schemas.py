@@ -5,10 +5,8 @@ from pydantic import BaseModel
 
 
 class CustomBaseModel(BaseModel):
-
     class Config:
         json_encoders = {datetime: lambda dt: dt.strftime("%Y-%m-%d %H:%M:%S")}
-
 
 
 class Commune(BaseModel):
@@ -23,6 +21,24 @@ class City(BaseModel):
     commune: Commune
 
 
+class Param(BaseModel):
+    paramName: str
+    paramFormula: str
+    paramCode: str
+    idParam: int
+
+
+class AirQualityItem(CustomBaseModel):
+    levelName: str
+    measurementDate: datetime
+    calculationDate: datetime
+    indexLevelName: str
+
+
+class AirQualityMeasurements(BaseModel):
+    measurements: List[AirQualityItem]
+
+
 class AirStation(BaseModel):
     id: int
     stationName: str
@@ -35,34 +51,6 @@ class AirStation(BaseModel):
 class AirStationList(BaseModel):
     airStations: List[AirStation]
     count: int
-
-
-class Param(BaseModel):
-    paramName: str
-    paramFormula: str
-    paramCode: str
-    idParam: int
-
-
-class AirStationSensor(BaseModel):
-    id: int
-    stationId: int
-    param: Param
-
-
-class AirStationSensorList(BaseModel):
-    airStationSensors: List[AirStationSensor]
-    count: int
-
-
-class AirQualityItem(CustomBaseModel):
-    levelName: str
-    measurementDate: datetime
-    calculationDate: datetime
-    indexLevelName: str
-
-class AirQualityMeasurements(BaseModel):
-    measurements: List[AirQualityItem]
 
 
 class AirParameter(CustomBaseModel):
