@@ -1,8 +1,12 @@
 :host {
-    display: flex;
-    
-    .search-container input {
-        width: 400px;
-        margin: 10px 0;
+    .search-container {
+        input {
+            width: 600px;
+            height: 56px;
+            margin: 10px 0;
+            padding-left: 15px;
+            border-radius: 15px;
+            border: 0px;
+        }
     }
 }

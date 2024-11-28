@@ -5,6 +5,18 @@ services:
       - 5051:80
     environment:
       DEV: 1
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     env_file: .env
     volumes:
       - ./backend/app:/code/app
+  redis:
+    image: redis:7.4
+    restart: always
+
+  nginx:
+    build: nginx
+    environment:
+      BACKEND_URL: http://api
+    ports:
+      - 5052:80

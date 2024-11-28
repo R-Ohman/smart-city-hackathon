@@ -23,12 +23,13 @@ declare const HeatmapOverlay: any;
 export class MapComponent implements OnInit{
   chosenStationId = signal(null as number|null);
 
+  
   private readonly airStore = inject(AirStore);
-
+  
   private airStations = this.airStore.airStationsEntities;
-
+  
   private readonly airService = inject(AirService);
-
+  
   protected isAirLoading = signal(true);
 
   private readonly httpClient = inject(HttpClient);
@@ -60,9 +61,15 @@ export class MapComponent implements OnInit{
     valueField: 'count'
   };
 
+  
+  private mapService = inject(MapService);
+
+  protected readonly qualityLabelFilter = this.mapService.airFilterOption;
+
+
   map: Leaflet.Map = this.mapService.map;
 
-  markers: Leaflet.Marker[] = [];
+  markers: DataMarker[] = [];
   options = {
     layers: [
       Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -80,6 +87,29 @@ export class MapComponent implements OnInit{
         this.map.flyTo({lat, lng}, 15);
     })
     
+    effect(() => {
+      let qualityFilter = this.qualityLabelFilter();
+      console.log('filtering marjers', qualityFilter);
+      if (qualityFilter !== "" && qualityFilter !== "Wszystko") {
+        for (let marker of this.markers) {
+            // undefined -> continue
+            if (!marker.measurementLabel) continue;
+            console.log(marker.measurementLabel);
+            if (marker.measurementLabel !== qualityFilter) {
+              this.map.removeLayer(marker);
+            } else {
+              marker.addTo(this.map);
+            }
+        }
+      } else {
+        // add all layers
+        for (let marker of this.markers) {
+          if (!this.map.hasLayer(marker)) {
+            marker.addTo(this.map);
+          }
+      }
+      }
+    })
   }
 
   public ngOnInit(): void {
@@ -100,42 +130,48 @@ export class MapComponent implements OnInit{
     }
 
     setInterval(() =>
-      // this.map.on('moveend',(e) => 
       {
-        // const current_markers =  this.getFeaturesInView();
-        // let undefinedQualities = 0;
-        //   for (let marker of current_markers){
+        const current_markers =  this.getFeaturesInView();
+        let undefinedQualities = 0;
+          for (let marker of current_markers){
             
-        //     const id = marker.getData()?.id;
-        //     if (id && !this.airStore.airStationsEntityMap()[id].quality && undefinedQualities <= 10){
-        //       undefinedQualities += 1;
-        //       this.airService.getStationQualities(id)
-        //         .then((stationQualities) => {
-        //           const quality = stationQualities.measurements[0].indexLevelName;
-        //           this.airStore.patchAirStation(id, {
-        //             quality: quality
-        //           }) 
-        //           if (quality == "Bardzo dobry"){
-        //             marker.circle?.setStyle({ color: "#33cc33"})
-        //           }else if (quality == "Dobry"){
-        //             marker.circle?.setStyle({ color: "#99ff33"})
-        //           }else if (quality == "Umiarkowany"){
-        //             marker.circle?.setStyle({ color: "#ffff99"})
-        //           }else if (quality == "Dostateczny"){
-        //             marker.circle?.setStyle({ color: "#ffffcc"})
-        //           }else if (quality == "Zły"){
-        //             marker.circle?.setStyle({ color: "#ff9999"})
-        //           }else if (quality == "Bardzo zły"){
-        //             marker.circle?.setStyle({ color: "#ff0000"})
-        //           }
-        //           //marker.circle?.addTo(this.map);
-        //         } 
-        //       );
-        //     }
-        //   }
+            const id = marker.getData()?.id;
+            if (id && !this.airStore.airStationsEntityMap()[id].quality //&& undefinedQualities <= 10
+          ){
+              undefinedQualities += 1;
+              this.airService.getStationQualities(id)
+                .then((stationQualities) => {
+                  const quality = stationQualities.measurements[0].indexLevelName;
+                  this.airStore.patchAirStation(id, {
+                    quality: quality
+                  }) 
+                  marker.setMeasurementLabel(quality);
+                  if (quality == "Bardzo dobry"){
+                    marker.setStyle({ color: "#33cc33"})
+                  }else if (quality == "Dobry"){
+                    marker.setStyle({ color: "#99ff33"})
+                  }else if (quality == "Umiarkowany"){
+                    marker.setStyle({ color: "#ffff99"})
+                  }else if (quality == "Dostateczny"){
+                    marker.setStyle({ color: "#ffffcc"})
+                  }else if (quality == "Zły"){
+                    marker.setStyle({ color: "#ff9999"})
+                  }else if (quality == "Bardzo zły"){
+                    marker.setStyle({ color: "#ff0000"})
+                  }
+                  marker.addTo(this.map);
+                  let filter = this.qualityLabelFilter();
+                  if (filter !== '' && filter !== 'Wszystko' && marker.measurementLabel !== filter) {
+                    this.map.removeLayer(marker);
+                  }
+                } 
+              );
+            }
+          }
     }
     , 3000);
   }
+
 
   private loadGeojson(){
 
@@ -159,11 +195,11 @@ export class MapComponent implements OnInit{
   })
 }
 
-  generateMarker(data: AirStation, index: number) {
-    const marker = new DataMarker({lat: +data.gegrLat, lng: +data.gegrLon}, data);
-    marker.circle = Leaflet.circle([+data.gegrLat, +data.gegrLon], 5000);
-    marker.circle.setStyle({ color: 'green'});
 
+  generateMarker(data: AirStation, index: number): DataMarker {
+    const marker = new DataMarker({lat: +data.gegrLat, lng: +data.gegrLon}, data, { radius: 20 });
+    marker.setStyle({ color: "#8c98ab"}) // light grey
+ 
 
     return marker.on('click', (event) => this.markerClicked(event, index))
       .on('dragend', (event) => this.markerDragEnd(event, index));
@@ -184,7 +220,6 @@ export class MapComponent implements OnInit{
     this.chosenStationId.set(nearest_station.id);
     this.map.flyTo({lat: +nearest_station.gegrLat, lng: +nearest_station.gegrLon}, 15, { duration: 1.5 });
 
-    const stationDetails = this.airService.getStationDetails(nearest_station.id).then((stationDetails) => {
       let marker = this.markers.filter(
         (marker) => marker.getLatLng().lat == +nearest_station.gegrLat 
         && marker.getLatLng().lng == +nearest_station.gegrLon)[0];
@@ -192,8 +227,6 @@ export class MapComponent implements OnInit{
       marker.getPopup()!.on('remove', () => {
         this.chosenStationId.set(null);
       });
-    }
-    );
   }
 
   getNearestStation(latitude: number, longtitude: number): AirStation {
@@ -218,7 +251,7 @@ export class MapComponent implements OnInit{
   }
 
   markerClicked($event: any, index: number) {
-    console.log($event.latlng.lat, $event.latlng.lng);
+    this.mapClicked($event);
   }
 
   markerDragEnd($event: any, index: number) {
@@ -238,12 +271,11 @@ export class MapComponent implements OnInit{
 }
 
 
-export class DataMarker extends Leaflet.Marker {
+export class DataMarker extends Leaflet.CircleMarker {
   data: AirStation | undefined;
+  measurementLabel: string | undefined;
 
-  circle: Leaflet.Circle | undefined;
-
-  constructor(latLng: L.LatLngExpression, data: AirStation, options?: L.MarkerOptions) {
+  constructor(latLng: L.LatLngExpression, data: AirStation, options: L.CircleMarkerOptions) {
     super(latLng, options);
     this.setData(data);
   }
@@ -254,5 +286,9 @@ export class DataMarker extends Leaflet.Marker {
 
   setData(data: AirStation) {
     this.data = data;
+  }
+
+  setMeasurementLabel(measurementLabel: string) {
+    this.measurementLabel = measurementLabel;
   }
 }
