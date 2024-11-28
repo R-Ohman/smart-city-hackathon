@@ -45,6 +45,14 @@ export class MapComponent implements OnInit{
     })
   }
 
+  constructor(private headerService: HeaderService) {
+    effect(() => {
+      let [lat, lng] = headerService.geoLocationBySearch();
+      if (lat && lng)
+        this.map.flyTo({lat, lng}, 15);
+    })
+  }
+
   public ngOnInit(): void {
     this.airStore.getAirStations()
       .then(() => this.initMarkers());
