@@ -7,6 +7,7 @@ import { HeaderService } from '../../core/service/header/header.service';
 import { AirService } from '../service/air/air.service';
 import { ScaleComponent } from '../../core/scale/scale.component';
 import { AreaDetailsComponent } from '@features/area-details/area-details.component';
+import { MapService } from '@features/service/map/map.service';
 
 @Component({
   selector: 'app-map',
@@ -26,7 +27,10 @@ export class MapComponent implements OnInit{
 
   protected isAirLoading = signal(true);
 
-  map!: Leaflet.Map;
+  private mapService = inject(MapService);
+
+  map: Leaflet.Map = this.mapService.map;
+
   markers: Leaflet.Marker[] = [];
   options = {
     layers: [
@@ -35,7 +39,7 @@ export class MapComponent implements OnInit{
       })
     ],
     zoom: 12,
-    center: { lat: 54.377492, lng: 16.310728 }
+    center: { lat: 54.35, lng: 18.65 }
   }
 
   constructor(private headerService: HeaderService) {
