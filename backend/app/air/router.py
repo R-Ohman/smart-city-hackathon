@@ -8,8 +8,6 @@ from .schemas import (
     AirQualityMeasurements,
     AirStationList,
     AirStation,
-    AirStationSensorList,
-    AirStationSensor,
 )
 from .external_air_api import (
     get_air_quality_info,
