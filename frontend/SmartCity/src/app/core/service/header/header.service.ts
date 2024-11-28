@@ -22,6 +22,10 @@ export class HeaderService {
           this.geoLocationBySearch.set([response.latitude, response.longitude]);
         })
       ).subscribe();
-    })
+      },
+      {
+        allowSignalWrites: true
+      }
+    )
   }
 }
