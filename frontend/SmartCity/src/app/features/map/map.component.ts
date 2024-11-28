@@ -3,6 +3,7 @@ import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import * as Leaflet from 'leaflet';
 import { AirStore } from '../store/air/air.store';
 import { AirStation } from '../models/air.model';
+import { AirService } from '../service/air/air.service';
 
 @Component({
   selector: 'app-map',
@@ -15,6 +16,8 @@ export class MapComponent implements OnInit{
   private readonly airStore = inject(AirStore);
 
   private airStations = this.airStore.airStationsEntities;
+
+  private readonly airService = inject(AirService);
 
   protected isAirLoading = signal(true);
 
@@ -51,7 +54,7 @@ export class MapComponent implements OnInit{
     for (let index = 0; index < airStations.length; index++) {
       const data = airStations[index];
       const marker = this.generateMarker(data, index);
-      marker.addTo(this.map).bindPopup(`<b>vitalii</b>`);
+      marker.addTo(this.map);
       this.map.panTo({lat: +data.gegrLat, lng: +data.gegrLon});
       this.markers.push(marker)
     }
@@ -70,10 +73,17 @@ export class MapComponent implements OnInit{
 
   mapClicked($event: any) {
     console.log($event.latlng.lat, $event.latlng.lng);
-    console.log(this.gentNearestStation($event.latlng.lat, $event.latlng.lng));
+    const nearest_station = this.getNearestStation($event.latlng.lat, $event.latlng.lng);
+    this.map.flyTo({lat: +nearest_station.gegrLat, lng: +nearest_station.gegrLon}, 15);
+
+    const stationDetails = this.airService.getStationDetails(nearest_station.id).then((stationDetails) => {
+      this.markers.filter((marker) => marker.getLatLng().lat == +nearest_station.gegrLat 
+      && marker.getLatLng().lng == +nearest_station.gegrLon)[0].bindPopup(nearest_station.stationName).openPopup()
+    }
+    );
   }
 
-  gentNearestStation(latitude: number, longtitude: number): AirStation {
+  getNearestStation(latitude: number, longtitude: number): AirStation {
     const stations = this.airStations();
 
     const distance = (x0: number, y0: number, x1: number, y1: number) => Math.hypot(x1 - x0, y1 - y0);
