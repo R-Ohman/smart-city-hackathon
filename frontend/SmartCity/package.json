@@ -22,11 +22,16 @@
     "@angular/router": "^18.0.0",
     "@asymmetrik/ngx-leaflet": "^18.0.1",
     "@ngrx/signals": "^18.1.1",
-    "leaflet": "^1.9.4",
+    "@schematics/angular": "^19.0.2",
     "bootstrap": "^5.3.3",
+    "leaflet": "^1.9.4",
+    "primeng": "^17.18.12",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "zone.js": "~0.14.3"
+    "zone.js": "~0.14.3",
+    "@types/leaflet.heat": "^0.2.4",
+    "heatmap.js": "^2.0.5",
+    "leaflet.heat": "^0.2.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^18.0.6",
