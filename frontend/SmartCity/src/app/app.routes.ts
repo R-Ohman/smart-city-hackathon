@@ -3,7 +3,7 @@ import { MapComponent } from './features/map/map.component';
 
 export const routes: Routes = [
     {
+        path: '**',
         component: MapComponent,
-        path: "map"
     }
 ];
