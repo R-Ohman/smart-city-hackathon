@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from pydantic import BaseModel
+from typing import List
 
 
 class Commune(BaseModel):
@@ -8,7 +11,6 @@ class Commune(BaseModel):
 
 
 class City(BaseModel):
-
     id: int
     name: str
     commune: Commune
@@ -26,5 +28,38 @@ class AirStation(BaseModel):
 
 class AirStationList(BaseModel):
 
-    airStations: list[AirStation]
+    airStations: List[AirStation]
     count: int
+
+
+class Param(BaseModel):
+    paramName: str
+    paramFormula: str
+    paramCode: str
+    idParam: int
+
+
+class AirStationSensor(BaseModel):
+    id: int
+    stationId: int
+    param: Param
+
+
+class AirStationSensorList(BaseModel):
+    airStationSensors: List[AirStationSensor]
+    count: int
+
+
+class AirQualityItem(BaseModel):
+    levelName: str
+    measurementDate: datetime
+    calculationDate: datetime
+    indexLevelName: str
+
+
+class AirQualityMeasurements(BaseModel):
+    measurements: List[AirQualityItem]
+
+
+
+
