@@ -96,6 +96,11 @@ export class MapComponent implements OnInit{
 
     effect(() => {
       const coords = this.mapService.greenAreasCircles();
+      // remove old areas
+      this.greenAreasMarkers.forEach((c) => this.map.removeLayer(c));
+      this.greenAreasMarkers = [];
+
+      // add new areas
       coords.forEach((c) => {
         let circle = Leaflet.circle([c.latitude, c.longitude], {
           color: 'red',
