@@ -9,7 +9,7 @@ import { ScaleComponent } from '../../core/scale/scale.component';
 import { AreaDetailsComponent } from '@features/area-details/area-details.component';
 import { MapService } from '@features/service/map/map.service';
 import { HttpClient } from '@angular/common/http';
-import 'leaflet.heat/dist/leaflet-heat.js'
+import { DataMarker, qualityLabelToColor } from './map.util';
 
 declare const HeatmapOverlay: any;
 
@@ -36,32 +36,9 @@ export class MapComponent implements OnInit{
 
   private mapService = inject(MapService);
 
+  private noiseLayer!: Leaflet.GeoJSON;
+
   private parkLayer!: Leaflet.GeoJSON;
-
-  private heatData: any = {
-    data: [
-      {lat: 48.37, lng: 31.16, count: 143},
-      {lat: 49.37, lng: 36.16, count: 133},
-      {lat: 43.32, lng: 37.13, count: 163},
-      {lat: 39.33, lng: 38.42, count: 143},
-      {lat: 42.31, lng: 34.65, count: 133},
-      {lat: 43.39, lng: 32.10, count: 163},
-    ]
-  }
-
-  private heatLayerConfig = {
-    "radius": 5,
-    "maxOpacity": .8,
-    "scaleRadius": true,
-    // property below is responsible for colorization of heat layer
-    "useLocalExtrema": true,
-    // here we need to assign property value which represent lat in our data
-    latField: 'lat',
-    // here we need to assign property value which represent lng in our data
-    lngField: 'lng',
-    // here we need to assign property value which represent valueField in our data
-    valueField: 'count'
-  };
 
   protected readonly qualityLabelFilter = this.mapService.airFilterOption;
 
@@ -111,11 +88,21 @@ export class MapComponent implements OnInit{
 
     effect(() => {
         const showParks = this.mapService.showParks();
+        console.log('parks', showParks);
         if (showParks)
-          this.loadGeojson();
+          this.loadParksGeojson();
         else if (this.parkLayer)
           this.map.removeLayer(this.parkLayer);
     })
+
+    effect(() => {
+      const showNoise = this.mapService.showNoise();
+      console.log('noise', showNoise);
+      if (showNoise)
+        this.loadNoiseGeojson();
+      else if (this.noiseLayer)
+        this.map.removeLayer(this.noiseLayer);
+  })
   }
 
   public ngOnInit(): void {
@@ -136,13 +123,10 @@ export class MapComponent implements OnInit{
     setInterval(() =>
       {
         const current_markers =  this.getFeaturesInView();
-        let undefinedQualities = 0;
           for (let marker of current_markers){
-            
             const id = marker.getData()?.id;
-            if (id && !this.airStore.airStationsEntityMap()[id].quality //&& undefinedQualities <= 10
+            if (id && !this.airStore.airStationsEntityMap()[id].quality
           ){
-              undefinedQualities += 1;
               this.airService.getStationQualities(id)
                 .then((stationQualities) => {
                   const quality = stationQualities.measurements[0].indexLevelName;
@@ -150,19 +134,7 @@ export class MapComponent implements OnInit{
                     quality: quality
                   }) 
                   marker.setMeasurementLabel(quality);
-                  if (quality == "Bardzo dobry"){
-                    marker.setStyle({ color: "#33cc33"})
-                  }else if (quality == "Dobry"){
-                    marker.setStyle({ color: "#99ff33"})
-                  }else if (quality == "Umiarkowany"){
-                    marker.setStyle({ color: "#ffff99"})
-                  }else if (quality == "Dostateczny"){
-                    marker.setStyle({ color: "#ffffcc"})
-                  }else if (quality == "Zły"){
-                    marker.setStyle({ color: "#ff9999"})
-                  }else if (quality == "Bardzo zły"){
-                    marker.setStyle({ color: "#ff0000"})
-                  }
+                  marker.setStyle({ color: qualityLabelToColor(quality )});
                   marker.addTo(this.map);
                   let filter = this.qualityLabelFilter();
                   if (filter !== '' && filter !== 'Wszystko' && marker.measurementLabel !== filter) {
@@ -176,8 +148,7 @@ export class MapComponent implements OnInit{
     , 3000);
   }
 
-
-  private loadGeojson() {
+  private loadParksGeojson() {
     let geojson: any = null;
     this.httpClient.get("/assets/greean_areas_with_coords.geojson").subscribe((data) => {
       geojson = data;
@@ -194,9 +165,28 @@ export class MapComponent implements OnInit{
   
       this.map.addLayer(stateLayer);
       this.parkLayer = stateLayer;
-  })
-}
+    })
+  }
 
+  private loadNoiseGeojson() {
+    let geojson: any = null;
+    this.httpClient.get("/assets/noise_pollution.geojson").subscribe((data) => {
+      geojson = data;
+
+      const stateLayer = Leaflet.geoJSON(geojson, {
+        style: (feature) => ({
+          weight: 3,
+          opacity: 0.5,
+          color: 'yellow',
+          fillOpacity: 0.8,
+          fillColor: '#aba509',
+        })
+      });
+  
+      this.map.addLayer(stateLayer);
+      this.noiseLayer = stateLayer;
+    })
+  }
 
   generateMarker(data: AirStation, index: number): DataMarker {
     const marker = new DataMarker({lat: +data.gegrLat, lng: +data.gegrLon}, data, { radius: 20 });
@@ -210,10 +200,6 @@ export class MapComponent implements OnInit{
   onMapReady($event: Leaflet.Map) {
     this.map = $event;
     this.initMarkers();
-    const heatmapLayer = new HeatmapOverlay(this.heatLayerConfig);
-    
-    heatmapLayer.setData(this.heatData);
-    heatmapLayer.addTo(this.map);
   }
 
   mapClicked($event: any) {
@@ -271,28 +257,5 @@ export class MapComponent implements OnInit{
 
   onCloseDetails() {
     this.chosenStationId.set(null);
-  }
-}
-
-
-export class DataMarker extends Leaflet.CircleMarker {
-  data: AirStation | undefined;
-  measurementLabel: string | undefined;
-
-  constructor(latLng: L.LatLngExpression, data: AirStation, options: L.CircleMarkerOptions) {
-    super(latLng, options);
-    this.setData(data);
-  }
-
-  getData() {
-    return this.data;
-  }
-
-  setData(data: AirStation) {
-    this.data = data;
-  }
-
-  setMeasurementLabel(measurementLabel: string) {
-    this.measurementLabel = measurementLabel;
   }
 }

@@ -1,5 +1,5 @@
 import { computed, Injectable, signal } from '@angular/core';
-import { DataMarker } from '@features/map/map.component';
+import { DataMarker } from '@features/map/map.util';
 import * as Leaflet from 'leaflet';
 
 @Injectable({
@@ -11,6 +11,8 @@ export class MapService {
   airFilterOption = signal('');
 
   showParks = signal(false);
+
+  showNoise = signal(false);
 
   constructor() { }
 }
