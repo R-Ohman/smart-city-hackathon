@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
 
     GEOCODE_API_KEY: str
+
+    UPLOADED_MAPS_LOCATION: str = '/var/uploads/'
     
     @property
     def redis_url(self):

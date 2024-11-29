@@ -10,6 +10,7 @@ services:
     env_file: .env
     volumes:
       - ./backend/app:/code/app
+      - uploaded-data:/var/uploads
   redis:
     image: redis:7.4
     restart: always
@@ -20,3 +21,6 @@ services:
       BACKEND_URL: http://api
     ports:
       - 5052:80
+
+volumes:
+  uploaded-data:
