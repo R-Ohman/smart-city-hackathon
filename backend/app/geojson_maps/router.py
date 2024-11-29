@@ -6,7 +6,7 @@ import aiofiles
 from app.settings import settings
 from fastapi import APIRouter, HTTPException, UploadFile, status
 from fastapi import Path as URLPath
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 
 router = APIRouter()
 
@@ -45,4 +45,4 @@ async def get_uploaded_map(map_name: str):
     file_location = Path(settings.UPLOADED_MAPS_LOCATION) / (map_name + ".geojson")
     if not os.path.isfile(file_location):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    return FileResponse(file_location)
+    return RedirectResponse(f"/static/{map_name}.geojson")
