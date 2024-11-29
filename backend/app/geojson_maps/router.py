@@ -46,3 +46,11 @@ async def get_uploaded_map(map_name: str):
     if not os.path.isfile(file_location):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return RedirectResponse(f"/static/{map_name}.geojson")
+
+@router.delete("/{map_name}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_uploaded_map(map_name: str):
+    file_location = Path(settings.UPLOADED_MAPS_LOCATION) / (map_name + ".geojson")
+    if os.path.isfile(file_location):
+        os.remove(file_location)
+     
+
