@@ -36,6 +36,8 @@ export class MapComponent implements OnInit{
 
   private mapService = inject(MapService);
 
+  private parkLayer!: Leaflet.GeoJSON;
+
   private heatData: any = {
     data: [
       {lat: 48.37, lng: 31.16, count: 143},
@@ -60,9 +62,6 @@ export class MapComponent implements OnInit{
     // here we need to assign property value which represent valueField in our data
     valueField: 'count'
   };
-
-  
-  private mapService = inject(MapService);
 
   protected readonly qualityLabelFilter = this.mapService.airFilterOption;
 
@@ -110,13 +109,19 @@ export class MapComponent implements OnInit{
       }
       }
     })
+
+    effect(() => {
+        const showParks = this.mapService.showParks();
+        if (showParks)
+          this.loadGeojson();
+        else if (this.parkLayer)
+          this.map.removeLayer(this.parkLayer);
+    })
   }
 
   public ngOnInit(): void {
     this.airStore.getAirStations()
       .then(() => this.initMarkers());
-    this.loadGeojson();
-
   }
 
   initMarkers() {
@@ -173,25 +178,23 @@ export class MapComponent implements OnInit{
   }
 
 
-  private loadGeojson(){
-
+  private loadGeojson() {
     let geojson: any = null;
     this.httpClient.get("/assets/greean_areas_with_coords.geojson").subscribe((data) => {
       geojson = data;
 
-      // const stateLayer = Leaflet.geoJSON(geojson, {
-      //   style: (feature) => ({
-      //     weight: 3,
-      //     opacity: 0.5,
-      //     color: '#008f68',
-      //     fillOpacity: 0.8,
-      //     fillColor: '#6DB65B'
-      //   })
-      // });
+      const stateLayer = Leaflet.geoJSON(geojson, {
+        style: (feature) => ({
+          weight: 3,
+          opacity: 0.5,
+          color: '#008f68',
+          fillOpacity: 0.8,
+          fillColor: '#6DB65B'
+        })
+      });
   
-      // this.map.addLayer(stateLayer);
-
-      
+      this.map.addLayer(stateLayer);
+      this.parkLayer = stateLayer;
   })
 }
 

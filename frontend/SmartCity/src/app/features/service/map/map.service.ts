@@ -10,5 +10,7 @@ export class MapService {
 
   airFilterOption = signal('');
 
+  showParks = signal(false);
+
   constructor() { }
 }
