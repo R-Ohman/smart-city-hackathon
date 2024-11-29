@@ -164,14 +164,15 @@ export class MapComponent implements OnInit{
 
       // const randomColor = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
       // const randomFillColor = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
+      const targetCong = (colorConfig as any)[target]; 
 
       const stateLayer = Leaflet.geoJSON(geojson, {
         style: (feature) => ({
           weight: 3,
           opacity: 0.5,
-          color: (colorConfig as any)[target].color,
+          color: targetCong ? (colorConfig as any)[target].color : '#008f68',
           fillOpacity: 0.8,
-          fillColor: (colorConfig as any)[target].fillColor,
+          fillColor: targetCong ? (colorConfig as any)[target].fillColor : '#6DB65B',
         })
       });
   
@@ -191,6 +192,7 @@ export class MapComponent implements OnInit{
 
   onMapReady($event: Leaflet.Map) {
     this.map = $event;
+    this.map.setView([54.35,  18.65], 10); // Gdansk
     this.initMarkers();
   }
 
