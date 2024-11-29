@@ -38,33 +38,9 @@ export class MapComponent implements OnInit{
 
   private parkLayer!: Leaflet.GeoJSON;
 
-  private heatData: any = {
-    data: [
-      {lat: 48.37, lng: 31.16, count: 143},
-      {lat: 49.37, lng: 36.16, count: 133},
-      {lat: 43.32, lng: 37.13, count: 163},
-      {lat: 39.33, lng: 38.42, count: 143},
-      {lat: 42.31, lng: 34.65, count: 133},
-      {lat: 43.39, lng: 32.10, count: 163},
-    ]
-  }
-
-  private heatLayerConfig = {
-    "radius": 5,
-    "maxOpacity": .8,
-    "scaleRadius": true,
-    // property below is responsible for colorization of heat layer
-    "useLocalExtrema": true,
-    // here we need to assign property value which represent lat in our data
-    latField: 'lat',
-    // here we need to assign property value which represent lng in our data
-    lngField: 'lng',
-    // here we need to assign property value which represent valueField in our data
-    valueField: 'count'
-  };
-
   protected readonly qualityLabelFilter = this.mapService.airFilterOption;
 
+  private parks: { lat: number, lng: number, area:number}[] = [];
 
   map: Leaflet.Map = this.mapService.map;
 
@@ -180,7 +156,14 @@ export class MapComponent implements OnInit{
 
   private loadGeojson() {
     let geojson: any = null;
-    this.httpClient.get("/assets/greean_areas_with_coords.geojson").subscribe((data) => {
+    this.httpClient.get("/assets/greean_areas_with_coords.geojson").subscribe((data: any) => {
+      data.features.forEach((feature: any) => {
+        var symbol = feature.geometry['coordinates'];
+        const area = calculateArea(symbol[0]);
+        const [lat, lng] = centroid(symbol[0]);
+        this.parks.push({lat: lat, lng: lng, area: area});
+    });
+      
       geojson = data;
 
       const stateLayer = Leaflet.geoJSON(geojson, {
@@ -210,11 +193,7 @@ export class MapComponent implements OnInit{
 
   onMapReady($event: Leaflet.Map) {
     this.map = $event;
-    this.initMarkers();
-    const heatmapLayer = new HeatmapOverlay(this.heatLayerConfig);
-    
-    heatmapLayer.setData(this.heatData);
-    heatmapLayer.addTo(this.map);
+    this.initMarkers();    
   }
 
   mapClicked($event: any) {
@@ -273,7 +252,6 @@ export class MapComponent implements OnInit{
   
 }
 
-
 export class DataMarker extends Leaflet.CircleMarker {
   data: AirStation | undefined;
   measurementLabel: string | undefined;
@@ -294,4 +272,32 @@ export class DataMarker extends Leaflet.CircleMarker {
   setMeasurementLabel(measurementLabel: string) {
     this.measurementLabel = measurementLabel;
   }
+}
+
+function calculateArea(coords: [number, number][]) {
+ 
+  let area: number = 0;
+
+  for (let i = 0; i < coords.length; i++) {
+    const [x1, y1] = coords[i];
+    const [x2, y2] = coords[(i + 1) % coords.length];
+    // console.log(x1, y1, x2, y2)
+    area += x1 * y2 - x2 * y1;
+    // console.log(area)
+  }
+  return Math.abs(area) / 2;
+  // replace with
+  // return Math.abs(area) / 2;
+}
+
+function centroid(ring: [number, number][]) {
+  let x = 0, y=0;
+  for (let i of ring){
+    x += i[0];
+    y += i[1];
+  }
+  x = x / ring.length;
+  y = y / ring.length;
+
+  return [x,y];
 }
