@@ -3,6 +3,7 @@ import os
 from typing import Annotated
 import redis.asyncio as aioredis
 from fastapi import Depends, FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.settings import settings
@@ -15,7 +16,6 @@ from app.redis.redis_config import get_redis_client
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-
     if not os.path.isdir(settings.UPLOADED_MAPS_LOCATION):
         os.mkdir(settings.UPLOADED_MAPS_LOCATION)
 
@@ -24,6 +24,9 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.mount(
+    "/static", StaticFiles(directory=settings.UPLOADED_MAPS_LOCATION), name="static"
+)
 
 origins = ["http://localhost:4200"]
 
