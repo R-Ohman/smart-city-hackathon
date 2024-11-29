@@ -38,34 +38,28 @@ export class MapComponent implements OnInit{
 
   private heatData: any = {
     data: [
-      {lat: 48.37, lng: 31.16, count: 143},
-      {lat: 49.37, lng: 36.16, count: 133},
-      {lat: 43.32, lng: 37.13, count: 163},
-      {lat: 39.33, lng: 38.42, count: 143},
-      {lat: 42.31, lng: 34.65, count: 133},
-      {lat: 43.39, lng: 32.10, count: 163},
     ]
   }
 
   private heatLayerConfig = {
-    "radius": 5,
-    "maxOpacity": .8,
+    "radius": 0.5,
+    "maxOpacity": .2,
     "scaleRadius": true,
+    
     // property below is responsible for colorization of heat layer
-    "useLocalExtrema": true,
+    "useLocalExtrema": false,
     // here we need to assign property value which represent lat in our data
     latField: 'lat',
     // here we need to assign property value which represent lng in our data
     lngField: 'lng',
     // here we need to assign property value which represent valueField in our data
-    valueField: 'count'
+    valueField: 'value'
   };
 
-  
-  private mapService = inject(MapService);
 
   protected readonly qualityLabelFilter = this.mapService.airFilterOption;
 
+  private heatmapLayer = new HeatmapOverlay(this.heatLayerConfig);
 
   map: Leaflet.Map = this.mapService.map;
 
@@ -164,12 +158,33 @@ export class MapComponent implements OnInit{
                   if (filter !== '' && filter !== 'Wszystko' && marker.measurementLabel !== filter) {
                     this.map.removeLayer(marker);
                   }
+                  this.addHeatValue(marker, quality);
                 } 
               );
             }
           }
     }
     , 3000);
+  }
+
+  private addHeatValue(marker: any, quality: String){
+    let value = 0;
+    if (quality == "Bardzo dobry"){
+      value = 1;
+    }else if (quality == "Dobry"){
+      value = 1;
+    }else if (quality == "Umiarkowany"){
+      value = 140;
+    }else if (quality == "Dostateczny"){
+      value = 0.3;
+    }else if (quality == "Zły"){
+      value = 0.4;
+    }else if (quality == "Bardzo zły"){
+      value = 0.5;
+    }
+    console.log({ lat: marker.getData().gegrLat, lng: marker.getData().gegrLon, value });
+    this.heatData.data.push({ lat: marker.getData().gegrLat, lng: marker.getData().gegrLon, value: value });
+    this.heatmapLayer.setData(this.heatData);
   }
 
 
@@ -208,10 +223,9 @@ export class MapComponent implements OnInit{
   onMapReady($event: Leaflet.Map) {
     this.map = $event;
     this.initMarkers();
-    const heatmapLayer = new HeatmapOverlay(this.heatLayerConfig);
     
-    heatmapLayer.setData(this.heatData);
-    heatmapLayer.addTo(this.map);
+    this.heatmapLayer.setData(this.heatData);
+    this.heatmapLayer.addTo(this.map);
   }
 
   mapClicked($event: any) {
@@ -266,10 +280,7 @@ export class MapComponent implements OnInit{
      })
      return clusters;
   }
-
-  
 }
-
 
 export class DataMarker extends Leaflet.CircleMarker {
   data: AirStation | undefined;
