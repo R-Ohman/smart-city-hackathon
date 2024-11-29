@@ -1,0 +1,13 @@
+<div class="map-container"
+  leaflet
+  [leafletOptions]="options"
+  (leafletMapReady)="onMapReady($event)"
+  (leafletClick)="mapClicked($event)">
+</div>
+@if (!!chosenStationId()) {
+  <app-area-details [stationId]="chosenStationId()!" (close)="onCloseDetails()"></app-area-details>
+}
+
+<div class="scale">
+    <app-scale></app-scale>
+</div>

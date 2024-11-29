@@ -1,0 +1,14 @@
+:host {
+    .container {
+        width: 400px;
+    }
+
+    ::ng-deep mat-dialog-actions {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    mat-form-field {
+        width: 100%;
+    }
+}

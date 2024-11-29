@@ -1,0 +1,8 @@
+<mat-form-field class="maps-container">
+    <mat-label>Layers</mat-label>
+    <mat-select (valueChange)="onSelect($event)" multiple>
+      @for (map of mapOptions(); track $index) {
+        <mat-option [value]="map">{{map}}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>

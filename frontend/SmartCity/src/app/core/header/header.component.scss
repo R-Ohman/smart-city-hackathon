@@ -1,0 +1,36 @@
+:host {
+    position: fixed;
+    width: 100vw;
+    z-index: 100000;
+    
+    .container {
+        display: flex;
+        align-items: center;
+        margin: 0 auto;
+    }
+
+    .toggle-parks {
+        background-color: white;
+        height: 56px;
+        align-content: center;
+        margin-right: 20px;
+        padding: 0 20px;
+        border-radius: 15px;
+        border: 0;
+    }
+
+    .parks-slider {
+        background-color: white;
+        height: 56px;
+        width: 300px;
+        align-content: center;
+        border-radius: 15px;
+        border: 0;
+        margin-left: 20px;
+        padding-left: 10px;
+
+        mat-slider {
+            width: 90%;
+        }
+    }
+}

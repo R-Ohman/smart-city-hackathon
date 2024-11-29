@@ -1,0 +1,20 @@
+<div class="container">
+
+    <h2 mat-dialog-title>Green Area Filter</h2>
+    <mat-dialog-content>
+        <mat-form-field>
+            <mat-label>Area Radius, meters</mat-label>
+            <input matInput [(ngModel)]="radius" type="number" min="100" max="10000" />
+        </mat-form-field>
+        
+        <mat-form-field>
+            <mat-label>Area Green Percentage, %</mat-label>
+            <input matInput [(ngModel)]="greenPercentage" type="number" min="0" max="100" />
+        </mat-form-field>
+    </mat-dialog-content>
+    <mat-dialog-actions>
+        <button mat-button (click)="onNoClick()">Cancel</button>
+        <button mat-button [mat-dialog-close]="[radius(), greenPercentage()]" cdkFocusInitial>Submit</button>
+    </mat-dialog-actions>
+    
+</div>

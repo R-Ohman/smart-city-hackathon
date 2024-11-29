@@ -1,0 +1,10 @@
+:host {
+    mat-form-field {
+        margin-right: 20px;
+        margin-top: 20px;
+    }
+
+    ::ng-deep .mat-mdc-text-field-wrapper {
+        border-radius: 15px;
+    }
+}
