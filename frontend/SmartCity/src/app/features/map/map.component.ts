@@ -88,7 +88,6 @@ export class MapComponent implements OnInit{
     
     effect(() => {
       let qualityFilter = this.qualityLabelFilter();
-      console.log('filtering marjers', qualityFilter);
       if (qualityFilter !== "" && qualityFilter !== "Wszystko") {
         for (let marker of this.markers) {
             // undefined -> continue
@@ -270,7 +269,9 @@ export class MapComponent implements OnInit{
      return clusters;
   }
 
-  
+  onCloseDetails() {
+    this.chosenStationId.set(null);
+  }
 }
 
 

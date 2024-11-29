@@ -5,7 +5,7 @@
   (leafletClick)="mapClicked($event)">
 </div>
 @if (!!chosenStationId()) {
-  <app-area-details [stationId]="chosenStationId()!"></app-area-details>
+  <app-area-details [stationId]="chosenStationId()!" (close)="onCloseDetails()"></app-area-details>
 }
 
 <div class="scale">

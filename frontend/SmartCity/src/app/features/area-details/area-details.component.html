@@ -1,3 +1,8 @@
+<div class="close-button">
+  <button mat-icon-button (click)="onClose()">
+    <mat-icon>cancel</mat-icon>
+  </button>
+</div>
 @if(stationDetails().length) {
 <table mat-table [dataSource]="stationDetails()" class="mat-elevation-z8">
     <ng-container matColumnDef="name">
