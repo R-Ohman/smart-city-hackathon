@@ -6,4 +6,5 @@ export enum ApiPath {
     AirStationDetails = baseUrl + 'air/parameters/',
     AirStationQuality = baseUrl + 'air/quality/',
     Maps = baseUrl + 'maps',
+    GreenAreas = baseUrl + 'green', // TODO: adjust
 }

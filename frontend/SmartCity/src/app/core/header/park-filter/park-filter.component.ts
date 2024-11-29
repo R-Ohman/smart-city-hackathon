@@ -13,6 +13,7 @@ import {
 } from '@angular/material/dialog';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
+import { MapService } from '@features/service/map/map.service';
 
 @Component({
   selector: 'app-park-filter',
@@ -26,6 +27,8 @@ export class ParkFilterComponent {
   readonly greenPercentage = signal(0);
   readonly dialog = inject(MatDialog);
 
+  constructor(private mapService: MapService) {}
+
   openDialog(): void {
     const dialogRef = this.dialog.open(GreenFilterDialogComponent, {
       data: {radius: null, greenPercentage: null},
@@ -35,7 +38,10 @@ export class ParkFilterComponent {
       if (result !== undefined) {
         this.radius.set(result[0]);
         this.greenPercentage.set(result[1]);
-        console.log(this.radius(), this.greenPercentage());
+        this.mapService.greenAreasConfig.set({
+          radius: this.radius(),
+          greenPercentage: this.greenPercentage()
+        })
       }
     });
   }

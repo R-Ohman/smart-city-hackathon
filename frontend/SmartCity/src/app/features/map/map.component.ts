@@ -12,8 +12,6 @@ import { HttpClient } from '@angular/common/http';
 import { DataMarker, qualityLabelToColor, colorConfig } from './map.util';
 import { ApiPath } from '@features/enums/api.enum';
 
-declare const HeatmapOverlay: any;
-
 @Component({
   selector: 'app-map',
   standalone: true,
@@ -55,6 +53,8 @@ export class MapComponent implements OnInit{
     center: { lat: 54.35, lng: 18.65 }
   }
 
+  greenAreasMarkers: Leaflet.Circle[] = [];
+
   constructor(private headerService: HeaderService) {
     effect(() => {
       let [lat, lng] = headerService.geoLocationBySearch();
@@ -92,6 +92,20 @@ export class MapComponent implements OnInit{
           else if(this.mapLayers.get(targetMap))
             this.map.removeLayer(this.mapLayers.get(targetMap)!);
         })
+    })
+
+    effect(() => {
+      const coords = this.mapService.greenAreasCircles();
+      coords.forEach((c) => {
+        let circle = Leaflet.circle([c.latitude, c.longitude], {
+          color: 'red',
+          fillColor: '#f03',
+          fillOpacity: 0.5,
+          radius: this.mapService.greenAreasConfig()!.radius
+        });
+        this.greenAreasMarkers.push(circle);
+        circle.addTo(this.map);
+      })
     })
   }
 
