@@ -10,5 +10,10 @@ server {
         proxy_cache cache;
 		proxy_cache_valid any 10m;
 		add_header X-Proxy-Cache $upstream_cache_status;
+
+        location /api/maps {
+            proxy_cache off;
+            proxy_pass ${BACKEND_URL};
+        }
     }
 }
