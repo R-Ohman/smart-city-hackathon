@@ -40,3 +40,14 @@ export class DataMarker extends Leaflet.CircleMarker {
       }
       return color;
   }
+
+  export const colorConfig = {
+    'Parks': {
+      color: '#008f68',
+      fillColor: '#6DB65B', 
+    },
+    'Noise': {
+      color: '#yellow',
+      fillColor: '#aba509', 
+    }
+  }

@@ -9,7 +9,8 @@ import { ScaleComponent } from '../../core/scale/scale.component';
 import { AreaDetailsComponent } from '@features/area-details/area-details.component';
 import { MapService } from '@features/service/map/map.service';
 import { HttpClient } from '@angular/common/http';
-import { DataMarker, qualityLabelToColor } from './map.util';
+import { DataMarker, qualityLabelToColor, colorConfig } from './map.util';
+import { ApiPath } from '@features/enums/api.enum';
 
 declare const HeatmapOverlay: any;
 
@@ -36,9 +37,7 @@ export class MapComponent implements OnInit{
 
   private mapService = inject(MapService);
 
-  private noiseLayer!: Leaflet.GeoJSON;
-
-  private parkLayer!: Leaflet.GeoJSON;
+  private mapLayers: Map<string, Leaflet.GeoJSON> = new Map();
 
   protected readonly qualityLabelFilter = this.mapService.airFilterOption;
 
@@ -69,7 +68,6 @@ export class MapComponent implements OnInit{
         for (let marker of this.markers) {
             // undefined -> continue
             if (!marker.measurementLabel) continue;
-            console.log(marker.measurementLabel);
             if (marker.measurementLabel !== qualityFilter) {
               this.map.removeLayer(marker);
             } else {
@@ -87,22 +85,14 @@ export class MapComponent implements OnInit{
     })
 
     effect(() => {
-        const showParks = this.mapService.showParks();
-        console.log('parks', showParks);
-        if (showParks)
-          this.loadParksGeojson();
-        else if (this.parkLayer)
-          this.map.removeLayer(this.parkLayer);
+        const showMaps = this.mapService.mapShow();
+        showMaps.forEach((show, targetMap) => {
+          if (show)
+            this.loadGeojson(targetMap);
+          else if(this.mapLayers.get(targetMap))
+            this.map.removeLayer(this.mapLayers.get(targetMap)!);
+        })
     })
-
-    effect(() => {
-      const showNoise = this.mapService.showNoise();
-      console.log('noise', showNoise);
-      if (showNoise)
-        this.loadNoiseGeojson();
-      else if (this.noiseLayer)
-        this.map.removeLayer(this.noiseLayer);
-  })
   }
 
   public ngOnInit(): void {
@@ -148,43 +138,26 @@ export class MapComponent implements OnInit{
     , 3000);
   }
 
-  private loadParksGeojson() {
+  private loadGeojson(target: string) {
     let geojson: any = null;
-    this.httpClient.get("/assets/greean_areas_with_coords.geojson").subscribe((data) => {
+    this.httpClient.get(ApiPath.Maps + "/" + target).subscribe((data) => {
       geojson = data;
+
+      // const randomColor = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
+      // const randomFillColor = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
 
       const stateLayer = Leaflet.geoJSON(geojson, {
         style: (feature) => ({
           weight: 3,
           opacity: 0.5,
-          color: '#008f68',
+          color: (colorConfig as any)[target].color,
           fillOpacity: 0.8,
-          fillColor: '#6DB65B'
+          fillColor: (colorConfig as any)[target].fillColor,
         })
       });
   
       this.map.addLayer(stateLayer);
-      this.parkLayer = stateLayer;
-    })
-  }
-
-  private loadNoiseGeojson() {
-    let geojson: any = null;
-    this.httpClient.get("/assets/noise_pollution.geojson").subscribe((data) => {
-      geojson = data;
-
-      const stateLayer = Leaflet.geoJSON(geojson, {
-        style: (feature) => ({
-          weight: 3,
-          opacity: 0.5,
-          color: 'yellow',
-          fillOpacity: 0.8,
-          fillColor: '#aba509',
-        })
-      });
-  
-      this.map.addLayer(stateLayer);
-      this.noiseLayer = stateLayer;
+      this.mapLayers.set(target, stateLayer);
     })
   }
 

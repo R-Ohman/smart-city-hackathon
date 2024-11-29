@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { MapService } from '@features/service/map/map.service';
 import { FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MatSelectModule} from '@angular/material/select';
@@ -12,15 +12,15 @@ import {MatFormFieldModule} from '@angular/material/form-field';
   styleUrl: './map-options.component.scss'
 })
 export class MapOptionsComponent {
-  mapOptions = [
-    "Parks",
-    "Noise",
-  ]
+  private mapService = inject(MapService);
 
-  constructor(private mapService: MapService) {}
+  mapOptions = this.mapService.mapsList;
 
   onSelect(mapOptions: string[]) {
-    this.mapService.showParks.set(mapOptions.includes("Parks"));
-    this.mapService.showNoise.set(mapOptions.includes("Noise"));
+    let mapCopy = new Map(this.mapService.mapShow());
+    this.mapService.mapShow().forEach((_, key) => {
+      mapCopy.set(key, mapOptions.includes(key));
+    })
+    this.mapService.mapShow.set(mapCopy);
   }
 }
